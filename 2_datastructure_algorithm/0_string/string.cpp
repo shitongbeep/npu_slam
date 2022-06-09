@@ -112,6 +112,42 @@ void findIfSubStr(const char *s1, int n1, const char *s2, int n2)
         cout << "false" << endl;
 }
 
+//*4. 翻转字符串里的单词
+void inverseString(char *array, int n)
+{
+    n--;
+    int m = -1;
+    char *inverse = new char[n];
+    for (int i = n - 1; i >= 0; i--)
+    {
+        if (array[i] != ' ')
+        {
+            m++;
+            inverse[m] = array[i];
+        }
+        else if (m != -1)
+        {
+            for (int j = m; j >= 0; j--)
+            {
+                cout << inverse[j];
+                m--;
+            }
+            cout << ' ';
+        }
+    }
+    if (m != -1)
+    {
+        for (int j = m; j >= 0; j--)
+        {
+            cout << inverse[j];
+            m--;
+        }
+        cout << ' ';
+    }
+    cout << endl;
+    delete[] inverse;
+}
+
 int main()
 {
     //*1. 无重复字符的最长子串
@@ -139,4 +175,11 @@ int main()
     char test70[] = "ab";
     char test71[] = "eidboaoo";
     findIfSubStr(test70, sizeof(test70) / sizeof(char), test71, sizeof(test71) / sizeof(char));
+    //*4. 翻转字符串里的单词
+    char test80[] = "the sky is blue";
+    char test81[] = "  hello world!  ";
+    char test82[] = "a good   example";
+    inverseString(test80, sizeof(test80) / sizeof(char));
+    inverseString(test81, sizeof(test81) / sizeof(char));
+    inverseString(test82, sizeof(test82) / sizeof(char));
 }
