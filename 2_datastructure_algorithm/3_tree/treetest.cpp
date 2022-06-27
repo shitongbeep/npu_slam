@@ -25,6 +25,8 @@ int main()
     mybintree1.tranverseTree();
     cout << "afert tranverse ... travel Level: ";
     mybintree1.travLevel(print<int>());
+    //*4. 在二叉树中找出和为某一值的所有路径
+    mybintree1.findSum(29);
     //*3. 把二元查找树转变成排序的双向链表
     BinNodePtr(int) c = mybintree1.change2list();
     cout << c->_data;
@@ -35,4 +37,13 @@ int main()
         c = c->_rc;
     }
     cout << endl;
+    //*4. 在二叉树中找出和为某一值的所有路径
+    BinTree<int> mybintree2;
+    mybintree2.insertAsRoot(10);
+    mybintree2.insertAsRC(mybintree2._root, 12);
+    BinNodePtr(int) now = mybintree2.insertAsLC(mybintree2._root, 5);
+    mybintree2.insertAsLC(now, 4);
+    mybintree2.insertAsRC(now, 7);
+    mybintree2.travLevel(print<int>());
+    mybintree2.findSum(22);
 }

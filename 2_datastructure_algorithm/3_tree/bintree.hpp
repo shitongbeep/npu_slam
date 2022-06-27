@@ -16,19 +16,27 @@ struct BinNode
     BinNodePtr(T) _lc;
     BinNodePtr(T) _rc;
     int height;
+    int depth;
 
     //构造函数
-    BinNode(T &data = 0)
+    BinNode(const T &data = 0)
         : _data(data)
     {
-        _rc = _lc = nullptr;
+        _rc = nullptr;
+        _lc = nullptr;
         height = 0;
+        depth = 0;
         _parent = nullptr;
     }
 
     //插入节点
-    BinNodePtr(T) insertAsLC(T &data)
+    BinNodePtr(T) insertAsLC(const T &data)
     {
+        if (this == nullptr)
+        {
+            cout << "this is nullptr" << endl;
+            return nullptr;
+        }
         if (this->_lc != nullptr)
         {
             cout << "lc has existed!" << endl;
@@ -37,12 +45,18 @@ struct BinNode
         BinNodePtr(T) ret = nullptr;
         ret = new BinNode<T>(data);
         ret->_parent = this;
-        ret->height = this->height + 1;
+        ret->depth = this->depth + 1;
+        ret->height = 0;
         this->_lc = ret;
         return ret;
     }
-    BinNodePtr(T) insertAsRC(T &data)
+    BinNodePtr(T) insertAsRC(const T &data)
     {
+        if (this == nullptr)
+        {
+            cout << "this is nullptr" << endl;
+            return nullptr;
+        }
         if (this->_rc != nullptr)
         {
             cout << "lc has existed!" << endl;
@@ -51,13 +65,35 @@ struct BinNode
         BinNodePtr(T) ret = nullptr;
         ret = new BinNode<T>(data);
         ret->_parent = this;
-        ret->height = this->height + 1;
+        ret->depth = this->depth + 1;
+        ret->height = 0;
         this->_rc = ret;
         return ret;
     }
     //重载比较
     bool operator<(const BinNode<T> &another) { return this->_data < another._data; }
     bool operator==(const BinNode<T> &another) { return this->_data == another._data; }
+
+    //*直接后继（中序遍历的后继）
+    BinNodePtr(T) & succ()
+    {
+        BinNodePtr(T) p = this;
+        if (this->_rc)
+        {
+            p = this->_rc;
+            while (p->_lc)
+            {
+                p = p->_lc;
+            }
+        }
+        else
+        {
+            while (p->_parent->_lc == p)
+                p = p->_parent;
+            p = p->_parent;
+        }
+        return p;
+    }
     //遍历操作
     //*子树先序遍历
     template <typename VST>
@@ -112,6 +148,7 @@ struct BinNode
             if (now->_rc)
                 myquene.push(now->_rc);
             visit(now->_data);
+            cout << '(' << now->height << ')' << ' ';
             myquene.pop();
         }
     }
@@ -144,13 +181,39 @@ struct BinNode
         if (rc)
             rc->change2list(parent, ret);
     }
+
+    void findSum(int n)
+    {
+        if (this->_lc)
+            this->_lc->findSum(n - this->_data);
+
+        if (this->_rc)
+            this->_rc->findSum(n - this->_data);
+
+        if (!this->_rc && !this->_lc && n - this->_data == 0)
+        {
+            BinNodePtr(T) now = this;
+            T sum = 0;
+            while (now != nullptr)
+            {
+                cout << now->_data;
+                sum += now->_data;
+                now = now->_parent;
+                if (now == nullptr)
+                    cout << " = " << sum;
+                else
+                    cout << " + ";
+            }
+            cout << endl;
+        }
+    }
 };
 
 template <typename T>
 class BinTree
 {
 protected:
-    int updateHeight(BinNodePtr(T) x) { return x->height = 1 + max(x->_lc->height, x->_rc->height); };
+    int updateHeight(BinNodePtr(T) x) { return x->height = 1 + max((x->_lc) ? x->_lc->height : 0, (x->_rc) ? x->_rc->height : 0); };
     void updateHeightAbove(BinNodePtr(T) x)
     {
         while (x)
@@ -181,20 +244,43 @@ public:
                 myqueue.push(now->_rc);
             }
             myqueue.pop();
+            updateHeightAbove(now);
         }
         _size = n;
     }
 
-    BinNodePtr(T) insertAsRoot(const T &data);
-    BinNodePtr(T) insertAsLC(BinNodePtr(T) x, const T &data) { return x && x->insertAsLC(data); }
-    BinNodePtr(T) insertAsRC(BinNodePtr(T) x, const T &data) { return x && x->insertAsRC(data); }
+    BinNodePtr(T) insertAsRoot(const T &data)
+    {
+        ++_size;
+        return _root = new BinNode<T>(data);
+    }
+    BinNodePtr(T) insertAsLC(BinNodePtr(T) x, const T &data)
+    {
+        if (!x)
+            return nullptr;
+        BinNodePtr(T) ret = x->insertAsLC(data);
+        if (ret && ret->depth)
+            _size++;
+        updateHeightAbove(x);
+        return ret;
+    }
+    BinNodePtr(T) insertAsRC(BinNodePtr(T) x, const T &data)
+    {
+        if (!x)
+            return nullptr;
+        BinNodePtr(T) ret = x->insertAsRC(data);
+        if (ret && ret->depth)
+            _size++;
+        updateHeightAbove(x);
+        return ret;
+    }
 
     struct print
     {
         void operator()(T &data) const { cout << data << ' '; }
     };
 
-    //遍历
+    //*遍历
     template <typename VST>
     void travPre(const VST &visit)
     {
@@ -240,5 +326,12 @@ public:
             _root->change2list(now, ret);
         }
         return ret;
+    }
+
+    //*4. 在二叉树中找出和为某一值的所有路径
+    void findSum(T n)
+    {
+        if (_root)
+            _root->findSum(n);
     }
 };
